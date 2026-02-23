@@ -79,13 +79,14 @@ def signin():
         if  count == 0:
             return jsonify({"message" : "Login failed"})
         else:
-            # there must be a user so we create a variable that will hold the details of the userf fetched from the database
+            # there must be a user so we create a variable that will hold the details of the user fetched from the database
             user = cursor.fetchone()
             # return the details to the frontend as weel as a message
             return jsonify({"message" : "user Logged in successfully", "user":user})
 
 
 # below is the route for adding products
+# define the route
 @app.route("/api/add_product", methods = ["POST"])
 def Addproducts():
     if request.method == "POST":
@@ -99,6 +100,7 @@ def Addproducts():
         # extract the file name of the product photo
         filename = product_photo.filename
         # by use of the os module we can extract the file path where the image is currently saved
+        # by use of an os module we can extract the file path where the image is currently saved.
         photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
         # save the product photo image into the new location
@@ -125,9 +127,30 @@ def Addproducts():
         connection.commit()
 
 
-
         return jsonify({"message" : "Product added successfully"})
+    
 
+
+# Below is a route for fetching products
+@app.route("/api/get_products")
+def get_products():
+    # create a connection to the database
+    connection=pymysql.connect(host="localhost", user="root", password="", database="sokogardenonline")
+
+    # create a cursor
+    cursor=connection.cursor(pymysql.cursors.DictCursor)
+
+    # structure a query to fetch all the products from the table product details
+    sql = "SELECT * FROM product_details"
+
+    # execute the query
+    cursor.execute(sql)
+
+    # create a variable that will hold the data fetched from the table
+    products = cursor.fetchall()
+
+    # return the products fetched
+    return jsonify(products)
 
 
 
