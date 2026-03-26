@@ -1,9 +1,14 @@
 # import flask and its components
 from flask import *
 import os
+from flask_cors import CORS
 
+# CORS stands for cross origin resource shairing
+
+# create a web app
 # create a flask application and give it a name
 app = Flask(__name__)
+CORS(app)
 
 # configure the location to where your product images will be saved on your application
 app.config["UPLOAD_FOLDER"] ="static/images"
@@ -11,6 +16,31 @@ app.config["UPLOAD_FOLDER"] ="static/images"
 # import the pymysql model - it helps us to create a connection between python flask and nysql database
 import pymysql
 
+# below is the footer form api
+@app.route("/api/footer_form", methods=["POST"])
+def footer_form():
+    if request.method == "POST":
+        name = request.form["name"]
+        email = request.form["email"]
+        message = request.form["message"]
+
+        connection = pymysql.connect(
+            host="mysql-hope.alwaysdata.net",
+            user="hope",
+            password="aurora borealis",
+            database="hope_sokogarden"
+        )
+
+        cursor = connection.cursor()
+
+        sql = "INSERT INTO footer_messages(name,email,message) VALUES(%s,%s,%s)"
+
+        data = (name, email, message)
+
+        cursor.execute(sql, data)
+        connection.commit()
+
+        return jsonify({"message": "Message sent successfully"})
 
 # below is a sign up route
 @app.route("/api/signup", methods = ["POST"])
@@ -26,24 +56,24 @@ def signup():
         # print(username, email, password, phone)
 
         # establish connection between flask/python and mysql
-    connection = pymysql.connect(host="localhost", user="root", password="", database="sokogardenonline")
+        connection = pymysql.connect(host="mysql-hope.alwaysdata.net", user="hope", password="aurora borealis", database="hope_sokogarden")
         # create a cursor to execute the sql queries
-    cursor = connection.cursor()
+        cursor = connection.cursor()
 
         # structure an sql to insert the details received from the form
         # %s is a placeholder -> A placeholder stands in places of actual values i.e we shall replace them later on
-    sql = "INSERT INTO users(username,email,phone,password) VALUES(%s, %s, %s, %s)"
+        sql = "INSERT INTO users(username,email,phone,password) VALUES(%s, %s, %s, %s)"
 
         # create a tuple that will hold all the data goten from the form
-    data = (username, email, phone, password)
+        data = (username, email, phone, password)
 
         # by use of the cursor execute the sql as you replace the placeholders with actual values
-    cursor.execute(sql, data)
+        cursor.execute(sql, data)
 
         # commit the changes to the database
-    connection.commit()
+        connection.commit()
 
-    return jsonify({"message" : "User registered successfully"})
+        return jsonify({"message" : "User registered successfully"})
 
 
 # below is a login/sign in route
@@ -58,7 +88,7 @@ def signin():
         # print(email, password)
 
         # create /establish a connection to the database
-        connection = pymysql.connect(host="localhost", user="root", password="", database="sokogardenonline")
+        connection = pymysql.connect(host="mysql-hope.alwaysdata.net", user="hope", password="aurora borealis", database="hope_sokogarden")
 
         # create a cursor
         cursor = connection.cursor(pymysql.cursors.DictCursor)
@@ -110,7 +140,7 @@ def Addproducts():
         # print(product_name, product_description, product_cost, product_photo)
 
         # establish a connection to the db
-        connection=pymysql.connect(host="localhost", user="root", password="", database="sokogardenonline")
+        connection=pymysql.connect(host="mysql-hope.alwaysdata.net", user="hope", password="aurora borealis", database="hope_sokogarden")
 
         # create a cursor
         cursor=connection.cursor()
@@ -135,7 +165,7 @@ def Addproducts():
 @app.route("/api/get_products")
 def get_products():
     # create a connection to the database
-    connection=pymysql.connect(host="localhost", user="root", password="", database="sokogardenonline")
+    connection=pymysql.connect(host="mysql-hope.alwaysdata.net", user="hope", password="aurora borealis", database="hope_sokogarden")
 
     # create a cursor
     cursor=connection.cursor(pymysql.cursors.DictCursor)
@@ -212,5 +242,5 @@ def mpesa_payment():
         return jsonify({"message": "Please Complete Payment in Your Phone and we will deliver in minutes"})
 
 # run the application
-app.run(debug=True)
+app.run(debug=True, port=5001)
 
