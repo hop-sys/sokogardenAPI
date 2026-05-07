@@ -15,6 +15,61 @@ app.config["UPLOAD_FOLDER"] ="static/images"
 
 # import the pymysql model - it helps us to create a connection between python flask and nysql database
 import pymysql
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+# MySQL connection function
+def get_connection():
+    return pymysql.connect(
+        host="mysql-hope.alwaysdata.net",
+        user="hope",
+        password="aurora borealis",
+        database="hope_sokogarden",
+        cursorclass=pymysql.cursors.DictCursor
+    )
+
+# -------------------------------
+# GET user profile by ID
+# -------------------------------
+@app.route("/api/user_profile/<int:user_id>", methods=["GET"])
+def get_user_profile(user_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM user_profile WHERE id=%s", (user_id,))
+    user = cursor.fetchone()
+    connection.close()
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+    return jsonify(user)
+
+# -------------------------------
+# UPDATE user profile with optional profile image
+# -------------------------------
+@app.route("/api/user_profile/<int:user_id>", methods=["PUT"])
+def update_user_profile(user_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    
+    username = request.form.get("username")
+    bio = request.form.get("bio", "")
+    profile_image = request.files.get("profile_image")
+
+    image_filename = None
+    if profile_image:
+        image_filename = f"user_{user_id}_{profile_image.filename}"
+        image_path = os.path.join(app.config["UPLOAD_FOLDER"], image_filename)
+        profile_image.save(image_path)
+
+    if image_filename:
+        sql = "UPDATE user_profile SET username=%s, bio=%s, profile_image=%s WHERE id=%s"
+        cursor.execute(sql, (username, bio, image_filename, user_id))
+    else:
+        sql = "UPDATE user_profile SET username=%s, bio=%s WHERE id=%s"
+        cursor.execute(sql, (username, bio, user_id))
+
+    connection.commit()
+    # connection.close()
+
+    return jsonify({"message": "Profile updated successfully", "profile_image": image_filename})
 
 # below is the footer form api
 @app.route("/api/footer_form", methods=["POST"])
